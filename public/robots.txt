@@ -1,0 +1,31 @@
+# robots.txt para Nuestras Voces Crowdfunding
+# https://nuestrasvoces.mx
+
+# Permitir acceso a todos los bots
+User-agent: *
+Allow: /
+
+# Bloquear directorios de desarrollo
+Disallow: /src/
+Disallow: /node_modules/
+Disallow: /.git/
+
+# Sitemap
+Sitemap: https://nuestrasvoces.mx/sitemap.xml
+
+# Crawl-delay para bots específicos (opcional)
+User-agent: AdsBot-Google
+Crawl-delay: 1
+
+# Permitir a bots de redes sociales
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+# Velocidad de rastreo
+Crawl-delay: 1
