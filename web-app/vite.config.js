@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
-  base: './', // Usar rutas relativas para que funcione sin servidor
+  base: '/',
   server: {
     port: 3000,
     open: true
