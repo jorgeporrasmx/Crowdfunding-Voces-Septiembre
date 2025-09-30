@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Estilos base personalizados para Nuestras Voces */
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    @apply bg-white text-gray-800;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', system-ui, sans-serif;
+    @apply font-bold;
+  }
+  
+  /* Efectos de scroll suave */
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Componentes personalizados */
+@layer components {
+  /* Botón principal - Morado */
+  .btn-primary {
+    @apply bg-primary-purple text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-primary-purple/90 transform hover:scale-105 transition-all duration-200;
+  }
+  
+  /* Botón secundario - Dorado */
+  .btn-secondary {
+    @apply bg-primary-gold text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-primary-gold/90 transform hover:scale-105 transition-all duration-200;
+  }
+  
+  /* Card de recompensa */
+  .reward-card {
+    @apply bg-white rounded-xl shadow-lg border-2 border-transparent hover:border-primary-purple transform hover:scale-[1.02] transition-all duration-300;
+  }
+  
+  /* Gradiente radial como en el diseño */
+  .radial-gradient {
+    background: radial-gradient(circle at center, var(--tw-gradient-stops));
+  }
+  
+  /* Patrón de puntos - actualizado con morado */
+  .dots-pattern {
+    background-image: radial-gradient(circle, rgba(124, 58, 237, 0.3) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  
+  /* Texto con gradiente - morado a violeta */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary-purple to-primary-violet bg-clip-text text-transparent;
+  }
+}
+
+/* Animaciones personalizadas */
+@layer utilities {
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .animate-pulse-ring {
+    animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+/* Keyframes para animaciones */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.7);
+  }
+  
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(45, 212, 191, 0);
+  }
+  
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(45, 212, 191, 0);
+  }
+}
+
+/* Animación pulse suave para botones de donación */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+/* Optimización menor para compatibilidad */
