@@ -10,11 +10,10 @@ const Footer = () => {
           <div className="md:col-span-2">
             <div className="flex items-center space-x-3 mb-4">
               <img
-                src="/microphone-icon.svg"
+                src="/logo-nuestras-voces.png"
                 alt="Nuestras Voces"
-                className="h-12 w-auto object-contain brightness-0 invert"
+                className="h-14 w-auto object-contain brightness-0 invert"
               />
-              <h3 className="text-xl font-display font-bold">Nuestras Voces</h3>
             </div>
             <p className="text-gray-300 mb-4 max-w-md">
               Un documental que celebra el arte del doblaje en México, destacando su valor nostálgico 

@@ -129,19 +129,13 @@ const SocialShare = () => {
               </div>
             </div>
             
-            <button 
-              className="btn-secondary px-8 py-3"
-              onClick={() => {
-                // Simulación de descarga - en producción sería un archivo real
-                const link = document.createElement('a')
-                link.href = '#'
-                link.download = 'nuestras-voces-press-kit.zip'
-                link.click()
-                alert('🎉 ¡Kit de prensa descargado! (Simulación)')
-              }}
+            <a
+              href="/nuestras-voces-documental.pdf"
+              download="Nuestras Voces - Documental.pdf"
+              className="btn-secondary px-8 py-3 inline-block"
             >
               📥 Descargar Kit Completo
-            </button>
+            </a>
           </div>
           
           {/* Gamificación - Puntos por compartir */}

@@ -21,16 +21,10 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
             <img
-              src="/microphone-icon.svg"
+              src="/logo-nuestras-voces.png"
               alt="Nuestras Voces Logo"
-              className="h-14 w-auto object-contain"
+              className="h-16 w-auto object-contain"
             />
-            <div>
-              <h1 className="text-2xl font-display font-bold text-gradient">
-                Nuestras Voces
-              </h1>
-              <p className="text-sm text-gray-600">Documental del doblaje mexicano</p>
-            </div>
           </Link>
 
           {/* Navigation Desktop */}
