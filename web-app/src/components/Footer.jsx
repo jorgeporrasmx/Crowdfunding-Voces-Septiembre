@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { MicrophoneIcon, EmailIcon, PhoneIcon, TwitterIcon, FacebookIcon, PinterestIcon } from './common/Icons'
+import { MicrophoneIcon, EmailIcon, PhoneIcon, InstagramIcon, FacebookIcon, TikTokIcon } from './common/Icons'
 
 const Footer = () => {
   return (
@@ -69,32 +69,32 @@ const Footer = () => {
           </div>
           
           <div className="flex space-x-4 mt-4 md:mt-0">
-            <a 
-              href="https://twitter.com/nuestrasvoces" 
-              target="_blank" 
-              rel="noopener noreferrer" 
+            <a
+              href="https://instagram.com"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-gray-400 hover:text-primary-purple transition-colors"
-              aria-label="Twitter"
+              aria-label="Instagram"
             >
-              <TwitterIcon className="w-5 h-5" />
+              <InstagramIcon className="w-5 h-5" />
             </a>
-            <a 
-              href="https://facebook.com/nuestrasvoces" 
-              target="_blank" 
-              rel="noopener noreferrer" 
+            <a
+              href="https://facebook.com"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-gray-400 hover:text-primary-purple transition-colors"
               aria-label="Facebook"
             >
               <FacebookIcon className="w-5 h-5" />
             </a>
-            <a 
-              href="https://instagram.com/nuestrasvoces" 
-              target="_blank" 
-              rel="noopener noreferrer" 
+            <a
+              href="https://tiktok.com"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-gray-400 hover:text-primary-purple transition-colors"
-              aria-label="Instagram"
+              aria-label="TikTok"
             >
-              <PinterestIcon className="w-5 h-5" />
+              <TikTokIcon className="w-5 h-5" />
             </a>
           </div>
         </div>

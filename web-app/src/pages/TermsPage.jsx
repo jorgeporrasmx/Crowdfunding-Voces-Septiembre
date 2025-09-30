@@ -155,9 +155,10 @@ const TermsPage = () => {
               de Contribuyentes (RFC), domicilio fiscal y correo electrónico.
             </p>
             <p className="text-gray-700 mb-6">
-              Las transacciones realizadas a través de la Plataforma podrán ser procesadas directamente por SUTILDE o por proveedores externos 
-              de servicios de pago, quienes serán responsables de la seguridad y procesamiento de la operación conforme a sus propios términos 
-              y políticas.
+              Las transacciones realizadas a través de la Plataforma podrán ser procesadas directamente por SUTILDE o por proveedores externos
+              de servicios de pago, quienes serán responsables de la seguridad y procesamiento de la operación conforme a sus propios términos
+              y políticas. SUTILDE implementará las medidas de seguridad razonables para salvaguardar la información de pago, pero no será
+              responsable por fallas, interrupciones, errores o incidentes atribuibles a dichos proveedores externos o a terceros ajenos a su control.
             </p>
 
             <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">12. NO REEMBOLSO</h3>
@@ -187,9 +188,10 @@ const TermsPage = () => {
 
             <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">14. JURISDICCIÓN PARA APORTACIONES</h3>
             <p className="text-gray-700 mb-6">
-              Para todo lo no previsto expresamente en los presentes Términos y Condiciones, las partes se someten a la legislación aplicable 
-              en los Estados Unidos Mexicanos. Cualquier controversia derivada de la interpretación, ejecución o cumplimiento de estos Términos 
-              y Condiciones será resuelta por los tribunales competentes de la Ciudad de México.
+              Para todo lo no previsto expresamente en los presentes Términos y Condiciones, las partes se someten a la legislación aplicable
+              en los Estados Unidos Mexicanos. Cualquier controversia derivada de la interpretación, ejecución o cumplimiento de estos Términos
+              y Condiciones será resuelta por los tribunales competentes de la Ciudad de México, renunciando expresamente el Usuario y/o Aportante
+              a cualquier otro fuero que pudiera corresponderle por razón de su domicilio presente o futuro.
             </p>
 
             <h3 className="text-xl font-semibold text-gray-800 mt-6 mb-3">

@@ -296,16 +296,12 @@ const PrivacyPage = () => {
               <li>Publicación de la versión actualizada en esta misma página</li>
             </ul>
 
-            <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">13. AUTORIDAD COMPETENTE</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">13. RECURSOS Y AUTORIDAD COMPETENTE</h2>
             <p className="text-gray-700 mb-6">
-              Si usted considera que su derecho a la protección de datos personales ha sido lesionado por alguna conducta de nuestros empleados 
-              o de nuestras actuaciones o respuestas, presume que en el tratamiento de sus datos personales existe alguna violación a las 
-              disposiciones previstas en la Ley Federal de Protección de Datos Personales en Posesión de los Particulares, podrá interponer 
-              la queja o denuncia correspondiente ante el Instituto Nacional de Transparencia, Acceso a la Información y Protección de Datos 
-              Personales (INAI). Para mayor información visite: 
-              <a href="https://www.inai.org.mx" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:text-purple-700 ml-1">
-                www.inai.org.mx
-              </a>
+              Si usted considera que su derecho a la protección de datos personales ha sido lesionado por alguna conducta de nuestros empleados
+              o de nuestras actuaciones o respuestas, presume que en el tratamiento de sus datos personales existe alguna violación a las
+              disposiciones previstas en la Ley Federal de Protección de Datos Personales en Posesión de los Particulares, podrá iniciar un
+              procedimiento de protección de derechos ante la Secretaría Anticorrupción y Buen Gobierno.
             </p>
 
             <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">14. ACEPTACIÓN DEL AVISO DE PRIVACIDAD</h2>
