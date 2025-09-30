@@ -11,7 +11,7 @@ const FAQ = () => {
     },
     {
       question: "¿Cómo se entregan las recompensas?",
-      answer: "Las recompensas digitales se envían por correo electrónico dentro de 48 horas. Las recompensas físicas se entregan una vez completada la producción (estimado: 2027). Las experiencias VIP se coordinan directamente con cada donante según disponibilidad."
+      answer: "Las recompensas digitales se envían por correo electrónico dentro de 48 horas. Las recompensas físicas se entregan una vez completada la producción (estimado: 2027). Costos adicionales pueden aplicar para los envíos recompensas físicas. Las experiencias VIP se coordinan directamente con cada donante según disponibilidad. Envíos internacionales para recompensas físicas (costos adicionales pueden aplicar)."
     },
     {
       question: "¿Qué métodos de pago aceptan?",
@@ -31,7 +31,7 @@ const FAQ = () => {
     },
     {
       question: "¿Qué pasa si no se completa el documental?",
-      answer: "Tenemos un plan de producción sólido y experiencia previa (documental 'El Gran Salto'). En el caso extremadamente improbable de no poder completar el proyecto, todos los donantes recibirían el material grabado disponible y un reporte detallado del uso de fondos."
+      answer: "Tenemos un plan de producción sólido y experiencia previa (documental 'El Gran Salto'). En el caso extremadamente improbable de no poder completar el proyecto, todos los donantes recibirían el material grabado disponible y un reporte detallado del uso de fondos. Bajo ninguna circunstancia las donaciones serán reembolsables."
     },
     {
       question: "¿Puedo ser parte desde el extranjero?",
