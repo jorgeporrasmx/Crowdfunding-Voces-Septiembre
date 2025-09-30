@@ -9,9 +9,9 @@ const Footer = () => {
           {/* Logo y descripción */}
           <div className="md:col-span-2">
             <div className="flex items-center space-x-3 mb-4">
-              <img 
-                src="/logo-morado.png" 
-                alt="Nuestras Voces" 
+              <img
+                src="/microphone-icon.svg"
+                alt="Nuestras Voces"
                 className="h-12 w-auto object-contain brightness-0 invert"
               />
               <h3 className="text-xl font-display font-bold">Nuestras Voces</h3>
