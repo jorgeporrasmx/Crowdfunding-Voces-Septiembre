@@ -1,10 +1,31 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import RewardCard from './RewardCard'
 import { formatMoney } from '../utils/formatMoney'
-import { rewards } from '../data/rewards'
+import rewardsService from '../services/rewards.service'
 
 const RewardsSection = () => {
   const [selectedReward, setSelectedReward] = useState(null)
+  const [rewards, setRewards] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    loadRewards()
+  }, [])
+
+  const loadRewards = async () => {
+    setLoading(true)
+    const result = await rewardsService.getActiveRewards()
+
+    if (result.success) {
+      setRewards(result.rewards)
+      setError(null)
+    } else {
+      setError(result.error)
+    }
+
+    setLoading(false)
+  }
 
   return (
     <section id="recompensas" className="py-20 bg-gradient-to-br from-neutral-light to-primary-teal/5">
@@ -32,15 +53,49 @@ const RewardsSection = () => {
 
         {/* Grid de recompensas */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
-          {rewards.map((reward) => (
-            <RewardCard 
-              key={reward.id}
-              reward={reward}
-              isSelected={selectedReward === reward.id}
-              onSelect={() => setSelectedReward(reward.id)}
-              formatMoney={formatMoney}
-            />
-          ))}
+          {loading ? (
+            // Loading skeleton
+            Array(11).fill(0).map((_, i) => (
+              <div key={i} className="bg-white rounded-xl shadow-lg p-6 animate-pulse">
+                <div className="h-16 bg-gray-200 rounded mb-4"></div>
+                <div className="h-8 bg-gray-200 rounded mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded mb-4"></div>
+                <div className="space-y-2">
+                  <div className="h-4 bg-gray-200 rounded"></div>
+                  <div className="h-4 bg-gray-200 rounded"></div>
+                  <div className="h-4 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+            ))
+          ) : error ? (
+            // Error state
+            <div className="col-span-full text-center py-12">
+              <p className="text-red-600 text-lg mb-4">❌ Error al cargar recompensas</p>
+              <p className="text-gray-600 mb-4">{error}</p>
+              <button
+                onClick={loadRewards}
+                className="btn-primary"
+              >
+                Reintentar
+              </button>
+            </div>
+          ) : rewards.length === 0 ? (
+            // Empty state
+            <div className="col-span-full text-center py-12">
+              <p className="text-gray-600 text-lg">No hay recompensas disponibles en este momento</p>
+            </div>
+          ) : (
+            // Rewards loaded
+            rewards.map((reward) => (
+              <RewardCard
+                key={reward.id}
+                reward={reward}
+                isSelected={selectedReward === reward.id}
+                onSelect={() => setSelectedReward(reward.id)}
+                formatMoney={formatMoney}
+              />
+            ))
+          )}
         </div>
 
         {/* Elementos comodín */}

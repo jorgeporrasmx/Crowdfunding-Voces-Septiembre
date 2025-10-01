@@ -1,11 +1,13 @@
 {
   "name": "web-app",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "seed:rewards": "node scripts/seedRewards.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

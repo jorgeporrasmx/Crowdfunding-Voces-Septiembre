@@ -1,26 +1,35 @@
 import { useState, useEffect } from 'react'
 import { formatMoney } from '../utils/formatMoney'
 import DonationButton from './DonationButton'
+import transparencyService from '../services/transparency.service'
 
 const ProgressSection = () => {
-  // Mock data - en producción vendría de una API
-  const [currentAmount, setCurrentAmount] = useState(0)
+  const [stats, setStats] = useState({
+    totalAmount: 0,
+    donorCount: 0,
+    avgDonation: 0,
+    thisWeekAmount: 0,
+    thisMonthAmount: 0
+  })
+  const [loading, setLoading] = useState(true)
   const [targetAmount] = useState(5000000)
-  const [donorCount, setDonorCount] = useState(0)
-  
-  const progressPercentage = (currentAmount / targetAmount) * 100
-  
-  // Simulación deshabilitada - valores estáticos
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setCurrentAmount(prev => prev + Math.floor(Math.random() * 1000))
-  //     if (Math.random() > 0.7) {
-  //       setDonorCount(prev => prev + 1)
-  //     }
-  //   }, 5000)
-  //
-  //   return () => clearInterval(interval)
-  // }, [])
+
+  const progressPercentage = (stats.totalAmount / targetAmount) * 100
+
+  useEffect(() => {
+    loadStats()
+    // Refrescar cada 30 segundos
+    const interval = setInterval(loadStats, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const loadStats = async () => {
+    const result = await transparencyService.getCampaignStats()
+    if (result.success) {
+      setStats(result.stats)
+    }
+    setLoading(false)
+  }
 
   return (
     <section className="py-16 bg-gradient-to-br from-primary-teal/10 to-primary-blue/10">
@@ -41,21 +50,39 @@ const ProgressSection = () => {
             {/* Números principales */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
               <div className="text-center md:text-left">
-                <div className="text-4xl md:text-6xl font-bold text-primary-teal mb-2">
-                  {formatMoney(currentAmount)}
-                </div>
-                <div className="text-lg text-gray-600">
-                  de {formatMoney(targetAmount)} recaudados
-                </div>
+                {loading ? (
+                  <div className="animate-pulse">
+                    <div className="h-16 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-4xl md:text-6xl font-bold text-primary-teal mb-2">
+                      {formatMoney(stats.totalAmount)}
+                    </div>
+                    <div className="text-lg text-gray-600">
+                      de {formatMoney(targetAmount)} recaudados
+                    </div>
+                  </>
+                )}
               </div>
-              
+
               <div className="text-center md:text-right">
-                <div className="text-4xl md:text-6xl font-bold text-primary-orange mb-2">
-                  {donorCount}
-                </div>
-                <div className="text-lg text-gray-600">
-                  personas han donado
-                </div>
+                {loading ? (
+                  <div className="animate-pulse">
+                    <div className="h-16 bg-gray-200 rounded mb-2"></div>
+                    <div className="h-6 bg-gray-200 rounded w-3/4 ml-auto"></div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-4xl md:text-6xl font-bold text-primary-orange mb-2">
+                      {stats.donorCount}
+                    </div>
+                    <div className="text-lg text-gray-600">
+                      personas han donado
+                    </div>
+                  </>
+                )}
               </div>
             </div>
             
@@ -82,23 +109,29 @@ const ProgressSection = () => {
             {/* Stats adicionales */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div className="bg-gradient-to-br from-primary-teal/10 to-primary-teal/20 rounded-lg p-4">
-                <div className="text-2xl font-bold text-primary-teal">0%</div>
+                <div className="text-2xl font-bold text-primary-teal">
+                  {loading ? '...' : `${progressPercentage.toFixed(1)}%`}
+                </div>
                 <div className="text-sm text-gray-600">de la meta</div>
               </div>
-              
+
               <div className="bg-gradient-to-br from-primary-orange/10 to-primary-orange/20 rounded-lg p-4">
                 <div className="text-2xl font-bold text-primary-orange">∞</div>
                 <div className="text-sm text-gray-600">días restantes</div>
               </div>
-              
+
               <div className="bg-gradient-to-br from-primary-blue/10 to-primary-blue/20 rounded-lg p-4">
-                <div className="text-2xl font-bold text-primary-blue">{donorCount > 0 ? formatMoney(currentAmount / donorCount) : '$0'}</div>
+                <div className="text-2xl font-bold text-primary-blue">
+                  {loading ? '...' : formatMoney(stats.avgDonation)}
+                </div>
                 <div className="text-sm text-gray-600">promedio</div>
               </div>
-              
+
               <div className="bg-gradient-to-br from-primary-purple/10 to-primary-purple/20 rounded-lg p-4">
-                <div className="text-2xl font-bold text-primary-purple">--</div>
-                <div className="text-sm text-gray-600">último donante</div>
+                <div className="text-2xl font-bold text-primary-purple">
+                  {loading ? '...' : formatMoney(stats.thisWeekAmount)}
+                </div>
+                <div className="text-sm text-gray-600">esta semana</div>
               </div>
             </div>
             
