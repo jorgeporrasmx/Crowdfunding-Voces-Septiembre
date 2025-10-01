@@ -1,40 +1,73 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 import { formatMoney } from '../utils/formatMoney'
 import donationsService from '../services/donations.service'
+import firstDataService from '../services/firstdata.service'
 
 const FirstDataRedirect = ({ amount, donationData, onSuccess, onError, onClose }) => {
   const [isProcessing, setIsProcessing] = useState(false)
+  const [isConfigured, setIsConfigured] = useState(false)
+  const { user } = useAuth()
+
+  useEffect(() => {
+    setIsConfigured(firstDataService.isConfigured())
+  }, [])
 
   const handleProceedToPayment = async () => {
     setIsProcessing(true)
 
     try {
-      // Crear donación en Firebase Firestore
-      const result = await donationsService.createDonation({
+      // 1. Crear donación en Firebase Firestore
+      const donationResult = await donationsService.createDonation({
         amount: amount,
         donorName: donationData.donorName,
         donorEmail: donationData.email,
         message: donationData.message,
         isAnonymous: donationData.isAnonymous,
         rewardId: donationData.reward?.id || null,
-        userId: null // TODO: Agregar cuando haya autenticación
+        userId: user?.uid || null
       })
 
-      if (!result.success) {
-        throw new Error(result.error)
+      if (!donationResult.success) {
+        throw new Error(donationResult.error)
       }
 
-      alert(
-        `✅ Donación registrada con código: ${result.donorCode}\n\n` +
-        `🚧 Próximamente: Redirección a First Data para completar pago\n\n` +
-        `💡 Por ahora, la donación queda en estado "pendiente"\n\n` +
-        `ID de donación: ${result.donationId}`
-      )
+      // 2. Si First Data está configurado, generar Payment URL
+      if (isConfigured) {
+        const paymentResult = await firstDataService.createPaymentUrl({
+          amount: amount,
+          currency: 'MXN',
+          orderId: donationResult.donationId,
+          description: `Donación para Nuestras Voces - ${donationResult.donorCode}`,
+          metadata: {
+            donationId: donationResult.donationId,
+            donorCode: donationResult.donorCode,
+            userName: donationData.donorName,
+            userEmail: donationData.email
+          }
+        })
 
-      onSuccess({
-        donationId: result.donationId,
-        donorCode: result.donorCode
-      })
+        if (!paymentResult.success) {
+          throw new Error(paymentResult.error)
+        }
+
+        // 3. Redirigir al usuario al Payment URL de First Data
+        window.location.href = paymentResult.paymentUrl
+
+      } else {
+        // Modo de desarrollo: sin First Data configurado
+        alert(
+          `✅ Donación registrada con código: ${donationResult.donorCode}\n\n` +
+          `⚠️ First Data no configurado\n\n` +
+          `Para completar la integración, configura las credenciales de First Data en .env.local\n\n` +
+          `ID de donación: ${donationResult.donationId}`
+        )
+
+        onSuccess({
+          donationId: donationResult.donationId,
+          donorCode: donationResult.donorCode
+        })
+      }
 
     } catch (error) {
       console.error('Error creating donation:', error)
@@ -67,11 +100,24 @@ const FirstDataRedirect = ({ amount, donationData, onSuccess, onError, onClose }
           </div>
         )}
 
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-          <p className="text-sm text-yellow-800">
-            <strong>🚧 En desarrollo:</strong> Próximamente serás redirigido a First Data
-            para completar el pago de forma segura. Por ahora, las donaciones quedan
-            registradas en estado "pendiente".
+        <div className={`border rounded-lg p-4 mb-6 ${
+          isConfigured
+            ? 'bg-blue-50 border-blue-200'
+            : 'bg-yellow-50 border-yellow-200'
+        }`}>
+          <p className={`text-sm ${isConfigured ? 'text-blue-800' : 'text-yellow-800'}`}>
+            {isConfigured ? (
+              <>
+                <strong>🔒 Pago seguro:</strong> Serás redirigido a First Data para completar
+                el pago de forma segura. Tu información financiera nunca pasa por nuestros servidores.
+              </>
+            ) : (
+              <>
+                <strong>⚠️ Modo de desarrollo:</strong> First Data no está configurado.
+                La donación quedará registrada en estado "pendiente". Configura las credenciales
+                en .env.local para habilitar pagos reales.
+              </>
+            )}
           </p>
         </div>
 
@@ -88,10 +134,10 @@ const FirstDataRedirect = ({ amount, donationData, onSuccess, onError, onClose }
             {isProcessing ? (
               <div className="flex items-center justify-center">
                 <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                Procesando...
+                {isConfigured ? 'Redirigiendo a First Data...' : 'Registrando donación...'}
               </div>
             ) : (
-              'Registrar Donación (Pendiente Pago)'
+              isConfigured ? 'Proceder al Pago Seguro' : 'Registrar Donación (Sin Pago)'
             )}
           </button>
 

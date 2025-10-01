@@ -4,6 +4,8 @@ import HomePage from './pages/HomePage'
 import TransparencyPage from './pages/TransparencyPage'
 import TermsPage from './pages/TermsPage'
 import PrivacyPage from './pages/PrivacyPage'
+import DonationSuccessPage from './pages/DonationSuccessPage'
+import DonationCancelledPage from './pages/DonationCancelledPage'
 import Header from './components/Header'
 import Footer from './components/Footer'
 
@@ -20,6 +22,8 @@ function App() {
               <Route path="/transparencia" element={<TransparencyPage />} />
               <Route path="/terminos" element={<TermsPage />} />
               <Route path="/privacidad" element={<PrivacyPage />} />
+              <Route path="/donation-success" element={<DonationSuccessPage />} />
+              <Route path="/donation-cancelled" element={<DonationCancelledPage />} />
             </Routes>
           </main>
           <Footer />
