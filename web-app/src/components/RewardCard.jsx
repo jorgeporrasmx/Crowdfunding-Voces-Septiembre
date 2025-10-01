@@ -1,9 +1,7 @@
 
-import { useState } from 'react'
-import PaymentMethods from './PaymentMethods'
+import DonationButton from './DonationButton'
 
 const RewardCard = ({ reward, isSelected, onSelect, formatMoney }) => {
-  const [showPaymentModal, setShowPaymentModal] = useState(false)
   const getColorClasses = (color) => {
     const colorMap = {
       yellow: {
@@ -86,16 +84,13 @@ const RewardCard = ({ reward, isSelected, onSelect, formatMoney }) => {
       
       {/* Footer con botón */}
       <div className="p-6 pt-0">
-        <button 
+        <DonationButton
+          initialAmount={reward.amount}
+          reward={reward}
           className={`w-full ${colors.button} text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105`}
-          onClick={(e) => {
-            e.stopPropagation()
-            onSelect(reward)
-            setShowPaymentModal(true)
-          }}
         >
           Seleccionar {reward.name}
-        </button>
+        </DonationButton>
         
         {/* Información adicional para niveles altos */}
         {reward.amount >= 10000 && (
@@ -114,7 +109,7 @@ const RewardCard = ({ reward, isSelected, onSelect, formatMoney }) => {
           </div>
         )}
       </div>
-      
+
       {/* Efecto de selección */}
       {isSelected && (
         <div className="absolute inset-0 border-2 border-primary-teal rounded-xl pointer-events-none">
@@ -122,28 +117,6 @@ const RewardCard = ({ reward, isSelected, onSelect, formatMoney }) => {
             ✓
           </div>
         </div>
-      )}
-
-      {/* Modal de pagos */}
-      {showPaymentModal && (
-        <PaymentMethods
-          amount={reward.amount}
-          onPaymentSuccess={(method, transactionId) => {
-            alert(
-              `🎉 ¡Gracias por tu apoyo!\n\n` +
-              `Has seleccionado: ${reward.name}\n` +
-              `Cantidad: ${formatMoney(reward.amount)}\n` +
-              `Método: ${method}\n` +
-              `ID: ${transactionId}\n\n` +
-              `Tu código de donante llegará por email.`
-            )
-            setShowPaymentModal(false)
-          }}
-          onPaymentError={(error) => {
-            alert(`❌ Error en el pago: ${error}\n\nPor favor, intenta de nuevo.`)
-          }}
-          onClose={() => setShowPaymentModal(false)}
-        />
       )}
     </div>
   )

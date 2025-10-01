@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { formatMoney } from '../utils/formatMoney'
-import PaymentMethods from './PaymentMethods'
+import FirstDataRedirect from './FirstDataRedirect'
 
 const DonationForm = ({ onClose, initialAmount = '', reward = null }) => {
   const [formData, setFormData] = useState({
@@ -63,30 +63,37 @@ const DonationForm = ({ onClose, initialAmount = '', reward = null }) => {
     }
   }
 
-  const handlePaymentSuccess = (method, transactionId) => {
+  const handlePaymentSuccess = (result) => {
     alert(
-      `🎉 ¡Donación exitosa!\n\n` +
+      `🎉 ¡Donación registrada!\n\n` +
       `Donante: ${formData.isAnonymous ? 'Anónimo' : formData.donorName}\n` +
       `Cantidad: ${formatMoney(parseFloat(formData.amount))}\n` +
-      `Método: ${method}\n` +
-      `ID: ${transactionId}\n\n` +
+      `Código: ${result.donorCode}\n\n` +
       `${reward ? `Recompensa: ${reward.name}\n` : ''}` +
-      `Recibirás un correo de confirmación en: ${formData.email}`
+      `Recibirás un correo de confirmación en: ${formData.email}\n\n` +
+      `Tu donación está pendiente de pago. Próximamente recibirás instrucciones para completar el proceso.`
     )
     onClose && onClose()
   }
 
   const handlePaymentError = (error) => {
-    alert(`❌ Error en el pago: ${error}\n\nPor favor, intenta de nuevo.`)
+    alert(`❌ Error al registrar donación: ${error}\n\nPor favor, intenta de nuevo.`)
     setShowPaymentMethods(false)
   }
 
   if (showPaymentMethods) {
     return (
-      <PaymentMethods
+      <FirstDataRedirect
         amount={parseFloat(formData.amount)}
-        onPaymentSuccess={handlePaymentSuccess}
-        onPaymentError={handlePaymentError}
+        donationData={{
+          donorName: formData.donorName,
+          email: formData.email,
+          message: formData.message,
+          isAnonymous: formData.isAnonymous,
+          reward: reward
+        }}
+        onSuccess={handlePaymentSuccess}
+        onError={handlePaymentError}
         onClose={() => setShowPaymentMethods(false)}
       />
     )

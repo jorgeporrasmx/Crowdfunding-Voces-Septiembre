@@ -14,10 +14,13 @@
   "description": "",
   "dependencies": {
     "@vitejs/plugin-react": "^4.7.0",
+    "date-fns": "^4.1.0",
+    "firebase": "^12.3.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.7.1",
-    "vite": "^7.0.6"
+    "vite": "^7.0.6",
+    "zod": "^4.1.11"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.10",
