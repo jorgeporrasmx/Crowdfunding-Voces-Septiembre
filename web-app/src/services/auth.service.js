@@ -1,6 +1,8 @@
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
   signOut,
   sendPasswordResetEmail,
   updateProfile,
@@ -8,6 +10,8 @@ import {
 } from 'firebase/auth'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
 import { auth, db, handleFirebaseError } from './firebaseClient'
+
+const googleProvider = new GoogleAuthProvider()
 
 /**
  * Servicio de autenticación
@@ -53,6 +57,36 @@ class AuthService {
       return { success: true, user: userCredential.user }
     } catch (error) {
       console.error('Error in login:', error)
+      return { success: false, error: handleFirebaseError(error) }
+    }
+  }
+
+  /**
+   * Iniciar sesión con Google
+   */
+  async loginWithGoogle() {
+    try {
+      const result = await signInWithPopup(auth, googleProvider)
+      const user = result.user
+
+      // Verificar si el usuario ya existe en Firestore
+      const userDoc = await getDoc(doc(db, 'users', user.uid))
+
+      // Si no existe, crear documento
+      if (!userDoc.exists()) {
+        await setDoc(doc(db, 'users', user.uid), {
+          email: user.email,
+          fullName: user.displayName,
+          photoURL: user.photoURL,
+          role: 'donor',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+      }
+
+      return { success: true, user }
+    } catch (error) {
+      console.error('Error in loginWithGoogle:', error)
       return { success: false, error: handleFirebaseError(error) }
     }
   }
