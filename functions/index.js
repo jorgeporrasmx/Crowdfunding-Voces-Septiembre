@@ -4,44 +4,31 @@
  * Este archivo contiene las Cloud Functions para integrar el gateway de pagos
  * First Data/Fiserv de forma segura.
  *
- * ESTADO ACTUAL: Error 401 Unauthorized
- * =====================================
+ * IMPLEMENTACIÓN SEGÚN DOCUMENTACIÓN FISERV LATAM
+ * ================================================
  *
- * SÍNTOMA:
- * Al llamar createPaymentUrl desde el cliente, se recibe error HTTP 401 Unauthorized
+ * Autenticación HMAC SHA-256:
+ * - Raw Signature = ApiKey + ClientRequestId + Timestamp + Payload
+ * - Encoding: Base64 (NO hex)
+ * - Headers requeridos: Api-Key, Timestamp, Message-Signature, Client-Request-Id
  *
- * POSIBLES CAUSAS A INVESTIGAR:
- * 1. Credenciales First Data incorrectas o mal formateadas
- *    - Verificar que FIRSTDATA_API_KEY sea el API Key correcto
- *    - Verificar que FIRSTDATA_API_SECRET sea el Shared Secret correcto
- *    - Verificar que FIRSTDATA_STORE_ID sea el Store ID correcto
- *    - Confirmar que environment sea 'cert' o 'prod' según corresponda
+ * Endpoints:
+ * - Certification: https://cert.api.firstdata.com
+ * - Production: https://prod.api.firstdata.com
  *
- * 2. Firma HMAC incorrecta
- *    - Verificar que el formato del mensaje para HMAC sea correcto
- *    - Confirmar que el orden de los campos sea: method\ncontentType\ntimestamp\nrequestPath\npayload
- *    - Verificar que el algoritmo sea SHA-256
+ * Configuración de Secrets en Firebase:
+ * - FIRSTDATA_API_KEY: API Key de First Data
+ * - FIRSTDATA_API_SECRET: Shared Secret para HMAC
+ * - FIRSTDATA_STORE_ID: Store ID asignado
+ * - FIRSTDATA_ENVIRONMENT: 'cert' o 'prod'
  *
- * 3. Headers HTTP
- *    - Verificar que los headers requeridos estén presentes y correctos
- *    - Api-Key, Timestamp, Message-Signature, Client-Request-Id
+ * Comandos para configurar secrets:
+ * firebase functions:secrets:set FIRSTDATA_API_KEY
+ * firebase functions:secrets:set FIRSTDATA_API_SECRET
+ * firebase functions:secrets:set FIRSTDATA_STORE_ID
+ * firebase functions:secrets:set FIRSTDATA_ENVIRONMENT
  *
- * 4. Endpoint URL
- *    - Confirmar que BASE_URL sea correcto para el environment
- *    - cert: https://cert.api.firstdata.com
- *    - prod: https://prod.api.firstdata.com
- *
- * 5. Configuración de Secrets en Firebase
- *    - Verificar que los secrets estén configurados correctamente en Firebase Console
- *    - Comando para configurar: firebase functions:secrets:set FIRSTDATA_API_KEY
- *
- * PASOS PARA DEBUGGING:
- * 1. Verificar logs en Firebase Console: https://console.firebase.google.com/project/nuestras-voces-crowdfunding/functions/logs
- * 2. Confirmar valores de secrets (sin exponerlos en logs)
- * 3. Probar manualmente el API de First Data con Postman/cURL
- * 4. Contactar soporte de First Data si las credenciales son correctas
- *
- * Última actualización: 2025-10-01
+ * Última actualización: 2025-10-02
  */
 
 const functions = require('firebase-functions')
@@ -63,19 +50,22 @@ const SITE_URL = 'https://nuestras-voces-crowdfunding.web.app'
 /**
  * Generar firma HMAC SHA-256 para autenticación con First Data API
  *
+ * Según documentación Fiserv LATAM:
+ * Raw Signature = ApiKey + ClientRequestId + Timestamp + Payload
+ * Encoding: Base64
+ *
+ * @param {string} apiKey - API Key de First Data
  * @param {string} apiSecret - Secret key de First Data para generar la firma
- * @param {string} method - Método HTTP (GET, POST, etc.)
- * @param {string} contentType - Content-Type del request (application/json)
- * @param {string} timestamp - Timestamp del request en milisegundos
- * @param {string} requestPath - Path del endpoint API (ej: /gateway/v2/payment-url)
- * @param {string} [payload=''] - Cuerpo del request en formato string (opcional)
- * @returns {string} Firma HMAC en formato hexadecimal
+ * @param {string} clientRequestId - ID único del request del cliente
+ * @param {string} timestamp - Timestamp del request en milisegundos (epoch)
+ * @param {string} payload - Cuerpo del request en formato string
+ * @returns {string} Firma HMAC en formato Base64
  */
-function generateHMACSignature(apiSecret, method, contentType, timestamp, requestPath, payload = '') {
-  const message = `${method}\n${contentType}\n${timestamp}\n${requestPath}\n${payload}`
+function generateHMACSignature(apiKey, apiSecret, clientRequestId, timestamp, payload) {
+  const rawSignature = apiKey + clientRequestId + timestamp + payload
   const hmac = crypto.createHmac('sha256', apiSecret)
-  hmac.update(message)
-  return hmac.digest('hex')
+  hmac.update(rawSignature)
+  return hmac.digest('base64')
 }
 
 /**
@@ -143,8 +133,7 @@ exports.createPaymentUrl = functions.https.onCall({
 
     const timestamp = Date.now().toString()
     const requestPath = '/gateway/v2/payment-url'
-    const method = 'POST'
-    const contentType = 'application/json'
+    const clientRequestId = orderId
 
     const payload = JSON.stringify({
       transactionAmount: {
@@ -164,23 +153,23 @@ exports.createPaymentUrl = functions.https.onCall({
       merchantTransactionId: orderId
     })
 
+    // Generar firma HMAC según especificación Fiserv LATAM
     const signature = generateHMACSignature(
+      apiKey,
       apiSecret,
-      method,
-      contentType,
+      clientRequestId,
       timestamp,
-      requestPath,
       payload
     )
 
     const response = await fetch(`${BASE_URL}${requestPath}`, {
-      method: method,
+      method: 'POST',
       headers: {
-        'Content-Type': contentType,
+        'Content-Type': 'application/json',
         'Api-Key': apiKey,
         'Timestamp': timestamp,
         'Message-Signature': signature,
-        'Client-Request-Id': orderId
+        'Client-Request-Id': clientRequestId
       },
       body: payload
     })
@@ -274,25 +263,25 @@ exports.checkTransactionStatus = functions.https.onCall({
 
     const timestamp = Date.now().toString()
     const requestPath = `/gateway/v2/payments/${orderId}`
-    const method = 'GET'
-    const contentType = 'application/json'
+    const clientRequestId = `status-${orderId}`
 
+    // Para GET requests, el payload está vacío
     const signature = generateHMACSignature(
+      apiKey,
       apiSecret,
-      method,
-      contentType,
+      clientRequestId,
       timestamp,
-      requestPath
+      ''
     )
 
     const response = await fetch(`${BASE_URL}${requestPath}`, {
-      method: method,
+      method: 'GET',
       headers: {
-        'Content-Type': contentType,
+        'Content-Type': 'application/json',
         'Api-Key': apiKey,
         'Timestamp': timestamp,
         'Message-Signature': signature,
-        'Client-Request-Id': `status-${orderId}`
+        'Client-Request-Id': clientRequestId
       }
     })
 
