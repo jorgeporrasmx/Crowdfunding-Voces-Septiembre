@@ -34,7 +34,7 @@ if (missingVars.length > 0) {
 }
 
 // Inicializar Firebase
-const app = initializeApp(firebaseConfig)
+export const app = initializeApp(firebaseConfig)
 
 // Servicios de Firebase
 export const auth = getAuth(app)

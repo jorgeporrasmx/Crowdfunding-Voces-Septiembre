@@ -1,7 +1,17 @@
+import { getFunctions, httpsCallable } from 'firebase/functions'
+import { app } from './firebaseClient'
+
 /**
  * First Data / Fiserv Payment Service
- * Maneja la integración con el gateway de pagos First Data
+ * Usa Firebase Functions como proxy seguro para First Data
  */
+
+const functions = getFunctions(app)
+
+// Configurar emulador local si está en desarrollo
+if (import.meta.env.DEV) {
+  // connectFunctionsEmulator(functions, 'localhost', 5001)
+}
 
 const FIRSTDATA_CONFIG = {
   apiKey: import.meta.env.VITE_FIRSTDATA_API_KEY,
@@ -10,104 +20,47 @@ const FIRSTDATA_CONFIG = {
   environment: import.meta.env.VITE_FIRSTDATA_ENVIRONMENT || 'cert'
 }
 
-const BASE_URL = FIRSTDATA_CONFIG.environment === 'prod'
-  ? 'https://prod.api.firstdata.com'
-  : 'https://cert.api.firstdata.com'
-
 class FirstDataService {
-  /**
-   * Generar firma HMAC para autenticación
-   */
-  async generateHMACSignature(method, contentType, timestamp, requestPath, payload = '') {
-    const message = `${method}\n${contentType}\n${timestamp}\n${requestPath}\n${payload}`
-
-    // En producción, esto debe hacerse en el backend por seguridad
-    // Por ahora es solo un placeholder
-    const encoder = new TextEncoder()
-    const data = encoder.encode(message)
-    const keyData = encoder.encode(FIRSTDATA_CONFIG.apiSecret)
-
-    const key = await crypto.subtle.importKey(
-      'raw',
-      keyData,
-      { name: 'HMAC', hash: 'SHA-256' },
-      false,
-      ['sign']
-    )
-
-    const signature = await crypto.subtle.sign('HMAC', key, data)
-    const hashArray = Array.from(new Uint8Array(signature))
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
-
-    return hashHex
-  }
-
   /**
    * Crear Payment URL para procesamiento de pago
    */
   async createPaymentUrl({ amount, currency = 'MXN', orderId, description, metadata = {} }) {
     try {
-      const timestamp = Date.now().toString()
-      const requestPath = '/gateway/v2/payment-url'
-      const method = 'POST'
-      const contentType = 'application/json'
+      const createPaymentUrlFn = httpsCallable(functions, 'createPaymentUrl')
 
-      const payload = JSON.stringify({
-        transactionAmount: {
-          total: parseFloat(amount).toFixed(2),
-          currency: currency
-        },
-        transactionType: 'SALE',
-        orderId: orderId,
-        billing: {
-          name: metadata.userName || 'Donante',
-          email: metadata.userEmail || ''
-        },
-        storeId: FIRSTDATA_CONFIG.storeId,
-        notificationUrl: `${import.meta.env.VITE_SITE_URL}/api/webhooks/firstdata`,
-        redirectUrl: `${import.meta.env.VITE_SITE_URL}/donation-success`,
-        cancelUrl: `${import.meta.env.VITE_SITE_URL}/donation-cancelled`,
-        merchantTransactionId: orderId
+      const result = await createPaymentUrlFn({
+        amount,
+        currency,
+        orderId,
+        description,
+        metadata
       })
 
-      const signature = await this.generateHMACSignature(
-        method,
-        contentType,
-        timestamp,
-        requestPath,
-        payload
-      )
-
-      const response = await fetch(`${BASE_URL}${requestPath}`, {
-        method: method,
-        headers: {
-          'Content-Type': contentType,
-          'Api-Key': FIRSTDATA_CONFIG.apiKey,
-          'Timestamp': timestamp,
-          'Message-Signature': signature,
-          'Client-Request-Id': orderId
-        },
-        body: payload
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-
-      return {
-        success: true,
-        paymentUrl: data.paymentUrl,
-        orderId: data.orderId,
-        clientRequestId: data.clientRequestId
-      }
+      return result.data
     } catch (error) {
-      console.error('Error creating payment URL:', error)
+      // Firebase Functions errors tienen una estructura específica
+      console.error('Error creating payment URL:', {
+        code: error?.code,
+        message: error?.message,
+        details: error?.details
+      })
+
+      // Extraer mensaje de error limpio
+      let errorMessage = 'Error al generar el link de pago'
+
+      if (error?.code === 'functions/internal') {
+        errorMessage = error?.message || 'Error interno del servidor'
+      } else if (error?.code === 'functions/unauthenticated') {
+        errorMessage = 'Error de autenticación'
+      } else if (error?.message) {
+        errorMessage = error.message
+      } else if (error?.code) {
+        errorMessage = `Error: ${error.code}`
+      }
+
       return {
         success: false,
-        error: error.message || 'Error al generar el link de pago'
+        error: errorMessage
       }
     }
   }
@@ -117,41 +70,11 @@ class FirstDataService {
    */
   async checkTransactionStatus(orderId) {
     try {
-      const timestamp = Date.now().toString()
-      const requestPath = `/gateway/v2/payments/${orderId}`
-      const method = 'GET'
-      const contentType = 'application/json'
+      const checkStatusFn = httpsCallable(functions, 'checkTransactionStatus')
 
-      const signature = await this.generateHMACSignature(
-        method,
-        contentType,
-        timestamp,
-        requestPath
-      )
+      const result = await checkStatusFn({ orderId })
 
-      const response = await fetch(`${BASE_URL}${requestPath}`, {
-        method: method,
-        headers: {
-          'Content-Type': contentType,
-          'Api-Key': FIRSTDATA_CONFIG.apiKey,
-          'Timestamp': timestamp,
-          'Message-Signature': signature,
-          'Client-Request-Id': `status-${orderId}`
-        }
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-
-      return {
-        success: true,
-        status: data.transactionStatus,
-        transaction: data
-      }
+      return result.data
     } catch (error) {
       console.error('Error checking transaction status:', error)
       return {
@@ -179,8 +102,7 @@ class FirstDataService {
   getConfig() {
     return {
       environment: FIRSTDATA_CONFIG.environment,
-      isConfigured: this.isConfigured(),
-      baseUrl: BASE_URL
+      isConfigured: this.isConfigured()
     }
   }
 }

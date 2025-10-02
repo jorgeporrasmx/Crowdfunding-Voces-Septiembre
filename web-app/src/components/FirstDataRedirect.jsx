@@ -18,6 +18,7 @@ const FirstDataRedirect = ({ amount, donationData, onSuccess, onError, onClose }
 
     try {
       // 1. Crear donación en Firebase Firestore
+      console.log('Creating donation with amount:', amount)
       const donationResult = await donationsService.createDonation({
         amount: amount,
         donorName: donationData.donorName,
@@ -28,12 +29,20 @@ const FirstDataRedirect = ({ amount, donationData, onSuccess, onError, onClose }
         userId: user?.uid || null
       })
 
+      console.log('Donation result:', donationResult)
+
       if (!donationResult.success) {
         throw new Error(donationResult.error)
       }
 
       // 2. Si First Data está configurado, generar Payment URL
       if (isConfigured) {
+        console.log('Calling createPaymentUrl with:', {
+          amount,
+          orderId: donationResult.donationId,
+          donorCode: donationResult.donorCode
+        })
+
         const paymentResult = await firstDataService.createPaymentUrl({
           amount: amount,
           currency: 'MXN',
@@ -46,6 +55,8 @@ const FirstDataRedirect = ({ amount, donationData, onSuccess, onError, onClose }
             userEmail: donationData.email
           }
         })
+
+        console.log('Payment result:', paymentResult)
 
         if (!paymentResult.success) {
           throw new Error(paymentResult.error)
@@ -71,7 +82,11 @@ const FirstDataRedirect = ({ amount, donationData, onSuccess, onError, onClose }
 
     } catch (error) {
       console.error('Error creating donation:', error)
-      onError(error.message || 'Error al procesar la donación')
+      // Extraer solo el mensaje del error, evitando objetos circulares
+      const errorMessage = typeof error === 'string'
+        ? error
+        : error?.message || error?.code || 'Error al procesar la donación'
+      onError(errorMessage)
     } finally {
       setIsProcessing(false)
     }

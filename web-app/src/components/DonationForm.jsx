@@ -1,17 +1,31 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { formatMoney } from '../utils/formatMoney'
+import { useAuth } from '../contexts/AuthContext'
 import FirstDataRedirect from './FirstDataRedirect'
 
 const DonationForm = ({ onClose, initialAmount = '', reward = null }) => {
+  const { user } = useAuth()
+
   const [formData, setFormData] = useState({
     amount: initialAmount,
-    donorName: '',
-    email: '',
+    donorName: user?.displayName || '',
+    email: user?.email || '',
     message: '',
     isAnonymous: false,
     acceptTerms: false
   })
+
+  // Actualizar datos cuando el usuario cambie
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        donorName: user.displayName || '',
+        email: user.email || ''
+      }))
+    }
+  }, [user])
 
   const [showPaymentMethods, setShowPaymentMethods] = useState(false)
   const [errors, setErrors] = useState({})
@@ -38,14 +52,17 @@ const DonationForm = ({ onClose, initialAmount = '', reward = null }) => {
       newErrors.amount = 'El monto mínimo es de $50 MXN'
     }
 
-    if (!formData.donorName.trim() && !formData.isAnonymous) {
-      newErrors.donorName = 'Por favor ingresa tu nombre o marca la casilla de donación anónima'
-    }
+    // Solo validar nombre y email si NO hay usuario autenticado
+    if (!user) {
+      if (!formData.donorName.trim() && !formData.isAnonymous) {
+        newErrors.donorName = 'Por favor ingresa tu nombre o marca la casilla de donación anónima'
+      }
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'El correo electrónico es requerido'
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Por favor ingresa un correo electrónico válido'
+      if (!formData.email.trim()) {
+        newErrors.email = 'El correo electrónico es requerido'
+      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+        newErrors.email = 'Por favor ingresa un correo electrónico válido'
+      }
     }
 
     if (!formData.acceptTerms) {
@@ -90,7 +107,12 @@ const DonationForm = ({ onClose, initialAmount = '', reward = null }) => {
           email: formData.email,
           message: formData.message,
           isAnonymous: formData.isAnonymous,
-          reward: reward
+          reward: reward ? {
+            id: reward.id,
+            name: reward.name,
+            amount: reward.amount,
+            level: reward.level
+          } : null
         }}
         onSuccess={handlePaymentSuccess}
         onError={handlePaymentError}
@@ -165,43 +187,51 @@ const DonationForm = ({ onClose, initialAmount = '', reward = null }) => {
             {errors.amount && <p className="text-red-500 text-sm mt-1">{errors.amount}</p>}
           </div>
 
-          {/* Información personal */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Nombre completo {!formData.isAnonymous && '*'}
-              </label>
-              <input
-                type="text"
-                name="donorName"
-                value={formData.donorName}
-                onChange={handleInputChange}
-                disabled={formData.isAnonymous}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-teal focus:border-transparent ${
-                  formData.isAnonymous ? 'bg-gray-100' : ''
-                } ${errors.donorName ? 'border-red-500' : 'border-gray-300'}`}
-                placeholder={formData.isAnonymous ? 'Donación anónima' : 'Tu nombre completo'}
-              />
-              {errors.donorName && <p className="text-red-500 text-sm mt-1">{errors.donorName}</p>}
+          {/* Información personal - Solo mostrar si no está autenticado */}
+          {user ? (
+            <div className="bg-primary-teal/5 border border-primary-teal/20 rounded-lg p-4">
+              <p className="text-sm text-gray-600 mb-2">Donación como:</p>
+              <p className="font-semibold text-gray-800">{user.displayName || 'Usuario'}</p>
+              <p className="text-sm text-gray-600">{user.email}</p>
             </div>
-            
-            <div>
-              <label className="block text-gray-700 font-medium mb-2">
-                Correo electrónico *
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-teal focus:border-transparent ${
-                  errors.email ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="tu@email.com"
-              />
-              {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">
+                  Nombre completo {!formData.isAnonymous && '*'}
+                </label>
+                <input
+                  type="text"
+                  name="donorName"
+                  value={formData.donorName}
+                  onChange={handleInputChange}
+                  disabled={formData.isAnonymous}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-teal focus:border-transparent ${
+                    formData.isAnonymous ? 'bg-gray-100' : ''
+                  } ${errors.donorName ? 'border-red-500' : 'border-gray-300'}`}
+                  placeholder={formData.isAnonymous ? 'Donación anónima' : 'Tu nombre completo'}
+                />
+                {errors.donorName && <p className="text-red-500 text-sm mt-1">{errors.donorName}</p>}
+              </div>
+
+              <div>
+                <label className="block text-gray-700 font-medium mb-2">
+                  Correo electrónico *
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-primary-teal focus:border-transparent ${
+                    errors.email ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder="tu@email.com"
+                />
+                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Mensaje opcional */}
           <div>
