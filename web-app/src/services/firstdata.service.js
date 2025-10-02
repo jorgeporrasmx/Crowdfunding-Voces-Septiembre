@@ -13,13 +13,6 @@ if (import.meta.env.DEV) {
   // connectFunctionsEmulator(functions, 'localhost', 5001)
 }
 
-const FIRSTDATA_CONFIG = {
-  apiKey: import.meta.env.VITE_FIRSTDATA_API_KEY,
-  apiSecret: import.meta.env.VITE_FIRSTDATA_API_SECRET,
-  storeId: import.meta.env.VITE_FIRSTDATA_STORE_ID,
-  environment: import.meta.env.VITE_FIRSTDATA_ENVIRONMENT || 'cert'
-}
-
 class FirstDataService {
   /**
    * Crear Payment URL para procesamiento de pago
@@ -86,14 +79,11 @@ class FirstDataService {
 
   /**
    * Validar configuración
+   * Nota: Las credenciales ahora están en Firebase Secret Manager
+   * Este método siempre retorna true ya que la validación se hace server-side
    */
   isConfigured() {
-    return !!(
-      FIRSTDATA_CONFIG.apiKey &&
-      FIRSTDATA_CONFIG.apiSecret &&
-      FIRSTDATA_CONFIG.storeId &&
-      FIRSTDATA_CONFIG.apiKey !== 'YOUR_API_KEY_HERE'
-    )
+    return true
   }
 
   /**
@@ -101,8 +91,8 @@ class FirstDataService {
    */
   getConfig() {
     return {
-      environment: FIRSTDATA_CONFIG.environment,
-      isConfigured: this.isConfigured()
+      isConfigured: this.isConfigured(),
+      note: 'Credenciales almacenadas en Firebase Secret Manager'
     }
   }
 }
