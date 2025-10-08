@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'superadmin'];
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && request.auth.uid == userId;
+      allow delete: if isAdmin();
+    }
+
+    // Donations collection
+    match /donations/{donationId} {
+      allow read: if true; // Público para transparencia
+      allow create: if true; // Cualquiera puede donar
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Rewards collection
+    match /rewards/{rewardId} {
+      allow read: if true; // Público
+      allow write: if isAdmin();
+    }
+
+    // Expenses collection
+    match /expenses/{expenseId} {
+      allow read: if true; // Transparencia pública
+      allow write: if isAdmin();
+    }
+  }
+}

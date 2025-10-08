@@ -1,0 +1,6 @@
+.vite/
+assets/Nuestras Voces - 5m.mp4
+.env
+.env.local
+node_modules/
+.DS_Store
